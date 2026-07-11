@@ -23,6 +23,7 @@ public class TruckRequest {
     @NotNull(message = "Capacity is required")
     private Double capacity;
 
+
     @NotBlank(message = "Model is required")
     private String model;
 
