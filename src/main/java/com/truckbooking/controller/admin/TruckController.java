@@ -16,6 +16,7 @@ public class TruckController {
 
     private final TruckService truckService;
 
+
     // Add Truck
     @PostMapping
     public ApiResponse<?> addTruck(@Valid @RequestBody TruckRequest request) {
