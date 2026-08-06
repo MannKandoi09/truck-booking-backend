@@ -6,4 +6,6 @@ public interface FileStorageService {
 
     String uploadTruckImage(MultipartFile file);
 
+    String uploadDriverImage(MultipartFile file);
+
 }

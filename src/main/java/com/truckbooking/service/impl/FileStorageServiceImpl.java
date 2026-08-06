@@ -29,8 +29,17 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public String uploadTruckImage(MultipartFile file) {
+        return uploadImage(file, "trucks");
+    }
 
-        // File empty check
+    @Override
+    public String uploadDriverImage(MultipartFile file) {
+        return uploadImage(file, "drivers");
+    }
+
+    // Common Method
+    private String uploadImage(MultipartFile file, String folderName) {
+
         if (file == null || file.isEmpty()) {
             throw new RuntimeException("Please select an image to upload.");
         }
@@ -38,7 +47,6 @@ public class FileStorageServiceImpl implements FileStorageService {
         System.out.println("Content Type: " + file.getContentType());
         System.out.println("Original File Name: " + file.getOriginalFilename());
 
-        // Content type validation
         if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
             throw new RuntimeException("Only JPG, JPEG and PNG images are allowed.");
         }
@@ -55,7 +63,6 @@ public class FileStorageServiceImpl implements FileStorageService {
                 extension = originalFileName.substring(index).toLowerCase();
             }
 
-            // Extension validation
             if (!extension.equals(".jpg")
                     && !extension.equals(".jpeg")
                     && !extension.equals(".png")) {
@@ -65,7 +72,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
             String fileName = UUID.randomUUID() + extension;
 
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = Paths.get(uploadDir, folderName);
 
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -77,7 +84,7 @@ public class FileStorageServiceImpl implements FileStorageService {
                     StandardCopyOption.REPLACE_EXISTING
             );
 
-            return "uploads/trucks/" + fileName;
+            return "uploads/" + folderName + "/" + fileName;
 
         } catch (IOException e) {
             throw new RuntimeException("Unable to upload image.");
