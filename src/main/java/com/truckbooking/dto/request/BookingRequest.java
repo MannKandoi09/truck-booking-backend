@@ -45,7 +45,14 @@ public class BookingRequest {
     // Optional: driver can be assigned later.
     private Long driverId;
 
+    // Optional: route can be assigned during booking.
+    @Positive(message = "Route ID must be positive")
+    private Long routeId;
+
     @NotNull(message = "Freight amount is required")
-    @DecimalMin(value = "0.01", message = "Freight amount must be greater than zero")
+    @DecimalMin(
+            value = "0.01",
+            message = "Freight amount must be greater than zero"
+    )
     private BigDecimal freightAmount;
 }

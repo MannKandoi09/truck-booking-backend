@@ -3,18 +3,22 @@ package com.truckbooking.service.impl;
 
 import com.truckbooking.dto.request.BookingRequest;
 import com.truckbooking.dto.response.BookingResponse;
+import com.truckbooking.dto.response.RouteStopResponse;
 import com.truckbooking.entity.Booking;
 import com.truckbooking.entity.Customer;
 import com.truckbooking.entity.Driver;
+import com.truckbooking.entity.Route;
 import com.truckbooking.entity.Truck;
 import com.truckbooking.enums.BookingStatus;
 import com.truckbooking.enums.CustomerStatus;
 import com.truckbooking.enums.DriverStatus;
 import com.truckbooking.enums.TruckAvailability;
 import com.truckbooking.enums.TruckStatus;
+import com.truckbooking.enums.RouteStatus;
 import com.truckbooking.repository.BookingRepository;
 import com.truckbooking.repository.CustomerRepository;
 import com.truckbooking.repository.DriverRepository;
+import com.truckbooking.repository.RouteRepository;
 import com.truckbooking.repository.TruckRepository;
 import com.truckbooking.response.ApiResponse;
 import com.truckbooking.service.BookingService;
@@ -26,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,6 +43,7 @@ public class BookingServiceImpl implements BookingService {
     private final CustomerRepository customerRepository;
     private final TruckRepository truckRepository;
     private final DriverRepository driverRepository;
+    private final RouteRepository routeRepository;
 
     private static final Set<BookingStatus> ACTIVE_STATUSES = Set.of(
             BookingStatus.PENDING,
@@ -84,6 +90,17 @@ public class BookingServiceImpl implements BookingService {
             return failure("Driver not found");
         }
 
+        Route route = null;
+        if (request.getRouteId() != null) {
+            route = routeRepository.findById(request.getRouteId()).orElse(null);
+            if (route == null) {
+                return failure("Route not found");
+            }
+            if (route.getStatus() != RouteStatus.ACTIVE) {
+                return failure("Inactive route cannot be assigned to a booking");
+            }
+        }
+
         String error = validateAssignment(
                 truck, driver, request.getCargoWeight(), null
         );
@@ -103,6 +120,7 @@ public class BookingServiceImpl implements BookingService {
                 .cargoWeight(request.getCargoWeight())
                 .truck(truck)
                 .driver(driver)
+                .route(route)
                 .freightAmount(request.getFreightAmount())
                 .status(BookingStatus.PENDING)
                 .build();
@@ -195,6 +213,17 @@ public class BookingServiceImpl implements BookingService {
             return failure("Driver not found");
         }
 
+        Route route = null;
+        if (request.getRouteId() != null) {
+            route = routeRepository.findById(request.getRouteId()).orElse(null);
+            if (route == null) {
+                return failure("Route not found");
+            }
+            if (route.getStatus() != RouteStatus.ACTIVE) {
+                return failure("Inactive route cannot be assigned to a booking");
+            }
+        }
+
         String error = validateAssignment(
                 truck, driver, request.getCargoWeight(), id
         );
@@ -211,6 +240,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setCargoWeight(request.getCargoWeight());
         booking.setTruck(truck);
         booking.setDriver(driver);
+        booking.setRoute(route);
         booking.setFreightAmount(request.getFreightAmount());
 
         Booking updatedBooking = bookingRepository.save(booking);
@@ -421,6 +451,19 @@ public class BookingServiceImpl implements BookingService {
     // ENTITY TO RESPONSE DTO
     private BookingResponse toResponse(Booking booking) {
 
+        Route route = booking.getRoute();
+
+        List<RouteStopResponse> routeStops = route == null
+                ? Collections.emptyList()
+                : route.getStops().stream()
+                .map(stop -> RouteStopResponse.builder()
+                        .id(stop.getId())
+                        .stopName(stop.getStopName())
+                        .stopAddress(stop.getStopAddress())
+                        .stopOrder(stop.getStopOrder())
+                        .build())
+                .toList();
+
         return BookingResponse.builder()
                 .id(booking.getId())
                 .bookingNumber(booking.getBookingNumber())
@@ -441,6 +484,15 @@ public class BookingServiceImpl implements BookingService {
 
                 .driverId(booking.getDriver().getId())
                 .driverName(booking.getDriver().getFullName())
+
+                .routeId(route == null ? null : route.getId())
+                .routeCode(route == null ? null : route.getRouteCode())
+                .routeName(route == null ? null : route.getRouteName())
+                .routeDistanceKm(route == null ? null : route.getDistanceKm())
+                .routeEstimatedDurationSeconds(
+                        route == null ? null : route.getEstimatedDurationSeconds()
+                )
+                .routeStops(routeStops)
 
                 .freightAmount(booking.getFreightAmount())
                 .status(booking.getStatus())

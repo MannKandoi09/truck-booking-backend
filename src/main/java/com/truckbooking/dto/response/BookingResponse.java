@@ -7,6 +7,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -34,6 +35,14 @@ public class BookingResponse {
 
     private Long driverId;
     private String driverName;
+
+    // Route details
+    private Long routeId;
+    private String routeCode;
+    private String routeName;
+    private Double routeDistanceKm;
+    private Long routeEstimatedDurationSeconds;
+    private List<RouteStopResponse> routeStops;
 
     private BigDecimal freightAmount;
     private BookingStatus status;

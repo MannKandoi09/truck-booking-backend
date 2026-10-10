@@ -64,6 +64,12 @@ public class Booking {
     @JoinColumn(name = "driver_id", nullable = false)
     private Driver driver;
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "route_id")
+    private Route route;
+
+
     // Freight charge for this booking
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal freightAmount;
