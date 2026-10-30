@@ -81,14 +81,22 @@ public class SecurityConfig {
                         // Public APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // ✅ Truck Images Public
+                        // Truck Images Public
                         .requestMatchers("/uploads/**").permitAll()
+
+                        // Shared read APIs accessible to both USER and ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/admin/trucks/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/routes/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/drivers/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/customers/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.GET, "/api/admin/bookings/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                        .requestMatchers(HttpMethod.POST, "/api/admin/bookings/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
 
                         // Admin APIs
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
 
                         // User APIs
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/user/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                         // Any Other Request
                         .anyRequest().authenticated()
